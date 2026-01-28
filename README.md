@@ -21,3 +21,11 @@ I've been playing around with the `fst` crate to handle sets of strings efficien
     *   **Result**: The memory mapped search was marginally slower (~25µs difference) for this small ~279KB file.
     *   **Reason**: `fs::read` loads the entire file into "hot" RAM immediately. `mmap` lazily loads pages on demand, incurring data access overhead (page faults) during the first search.
     *   **Verdict**: `fs::read` wins for small dictionaries. `mmap` is essential for massive datasets (GBs) where loading the whole file is impossible or startup time is critical.
+
+### Interactive Performance (REPL Experiment)
+I converted the program into an interactive REPL to isolate the **startup cost** from the **search cost**.
+*   **Startup**: ~51ms (Building/Loading FST once).
+*   **Per-Query Latency**:
+    *   Search ("love", dist=1): **~370µs**
+    *   Search ("funny", dist=1): **~241µs**
+*   **Insight**: Once the FST is memory-mapped, the cost of constructing a Levenshtein automaton and streaming results is consistently **sub-millisecond**, making it suitable for real-time tasks like autocompletion.
