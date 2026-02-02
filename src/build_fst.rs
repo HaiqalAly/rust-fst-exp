@@ -13,7 +13,14 @@ pub fn build_fst(input_path: &str, output_path: &str) -> Result<(), Box<dyn std:
 
     for line in reader {
         let line = line?;
-        build.insert(line.trim(), 0)?;
+        let mut key = line.as_str();
+        let mut value = 0;
+
+        if let Some((word, weight)) = line.split_once(","){
+            key = word.trim();
+            value = weight.trim().parse::<u64>().unwrap_or(0);
+        } 
+        build.insert(key, value)?;
     }
 
     build.finish()?;

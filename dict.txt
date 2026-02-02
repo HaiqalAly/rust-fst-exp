@@ -10995,7 +10995,7 @@ Lourdes
 Lourdes's
 Louvre
 Louvre's
-Love
+Love, 1000
 Love's
 Lovecraft
 Lovecraft's
@@ -48613,13 +48613,13 @@ font's
 fonts
 foo
 foobar
-food
+food, 500
 food's
 foods
 foodstuff
 foodstuff's
 foodstuffs
-fool
+fool, 200
 fool's
 fooled
 fooleries
@@ -62969,7 +62969,7 @@ louvre's
 louvred
 louvres
 lovable
-love
+love, 1000
 love's
 loveable
 lovebird

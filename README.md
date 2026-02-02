@@ -1,6 +1,6 @@
 # Rust FST Experiment
 
-> Please keep in mind that I'm still learning and at the very beginning. Expect some bugs, inefficiencies, or straight-up inaccuracies and nonsense I was about to spout in this README.
+> Please keep in mind that I'm still learning and at the very beginning. Expect some bugs, inefficiencies, or straight-up inaccuracies and nonsense I was about to spout in this README. I’ll admit this is getting a bit out of hand, so I think the experiment will be wrapping up soon.
 
 A personal exploration of the **[fst](https://github.com/BurntSushi/fst)** crate in Rust, experimenting with efficient string (set/map) storage and fuzzy searching capabilities.
 
@@ -85,4 +85,11 @@ Switched from loading the entire dictionary into a `Vec<String>` to streaming li
 ### Memory Mapping Strategy
 *   **fs::read (Heap)**: Slightly faster (~335µs) for small files because it pre-loads everything into RAM.
 *   **mmap (Memory Map)**: Slightly slower (~360µs) on first access due to page faults, but allows instant start-up and near-zero memory footprint for huge datasets.
+
+### Weighted Transducer (Ranking Results)
+Enhanced the FST to finally make use of the map (key, value) pair abilities for a ranked result, effectively creating a weighted search engine. For now, you'll have to manually edit the dictionary and assign the value yourself though. 
+
+*   **Implementation**: Parsed `word,score` pairs from `dict.txt` (e.g., `love,1000`).
+*   **Search Logic**: Results are no longer just alphabetical. They are collected and sorted descending by score at query time.
+*   **Outcome**: Searching for "lov" now promotes "love" (Score: 1000) to the top, while "clove" (Score: 0) sinks to the bottom, mimicking modern autocomplete behavior.
 

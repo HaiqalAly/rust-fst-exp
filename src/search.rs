@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 
 use fst::automaton::Levenshtein;
-use fst::{IntoStreamer, Map};
+use fst::{IntoStreamer, Map, Streamer};
 use memmap2::Mmap;
 
 pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
@@ -23,11 +23,20 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
             _ => {
                 let start_search = std::time::Instant::now();
                 let lev = Levenshtein::new(input.to_lowercase().as_str(), 1)?;
-                let stream = map.search(lev).into_stream();
-                let matches = stream.into_str_keys()?;
+                let mut stream = map.search(lev).into_stream();
+                let mut result = Vec::new();
+
+                while let Some((key_bytes, value)) = stream.next() {
+                    let word = String::from_utf8(key_bytes.to_vec())?;
+
+                    result.push((word, value));
+                }
+
+                result.sort_by_key(|(_, value)| std::cmp::Reverse(*value));
+
                 let duration_search = start_search.elapsed();
                 println!("Time to search: {:?}", duration_search);
-                println!("{:#?}", matches)
+                println!("{:#?}", result) 
             }
         }
     }
