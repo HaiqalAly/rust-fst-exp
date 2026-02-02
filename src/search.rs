@@ -6,6 +6,7 @@ use memmap2::Mmap;
 
 pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
     let data = std::fs::File::open("dict.fst")?;
+    // SAFETY: We assume the dictionary file is not being modified concurrently
     let mmap = unsafe { Mmap::map(&data)? };
     let map = Map::new(mmap)?;
 
@@ -27,16 +28,35 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                 let mut result = Vec::new();
 
                 while let Some((key_bytes, value)) = stream.next() {
-                    let word = String::from_utf8(key_bytes.to_vec())?;
-
-                    result.push((word, value));
+                    result.push((key_bytes.to_vec(), value));
                 }
 
-                result.sort_by_key(|(_, value)| std::cmp::Reverse(*value));
+                // Tie breaker (lowercase first > capitalized, e.g love > Love)
+                let target = input.to_lowercase();
+                result.sort_by_cached_key(|(word, value)| {
+                    let word_str = String::from_utf8_lossy(word).to_lowercase();
+
+                    let not_exact = word_str != target;
+                    
+                    (
+                        not_exact,
+                        std::cmp::Reverse(*value),
+                        word_str,
+                        std::cmp::Reverse(word.clone())
+                    )
+                });
+                
+                // Only take top 10 words
+                let top_10: Vec<(String, u64)> = result.into_iter()
+                    .take(10)
+                    .filter_map(|(bytes, value)| {
+                        String::from_utf8(bytes).ok().map(|s| (s, value))
+                    })
+                    .collect();
 
                 let duration_search = start_search.elapsed();
                 println!("Time to search: {:?}", duration_search);
-                println!("{:#?}", result) 
+                println!("{:#?}", top_10) 
             }
         }
     }

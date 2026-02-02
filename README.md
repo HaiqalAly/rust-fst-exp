@@ -1,6 +1,6 @@
 # Rust FST Experiment
 
-> Please keep in mind that I'm still learning and at the very beginning. Expect some bugs, inefficiencies, or straight-up inaccuracies and nonsense I was about to spout in this README. I’ll admit this is getting a bit out of hand, so I think the experiment will be wrapping up soon.
+> Please keep in mind that I'm still learning and at the very beginning. Expect some bugs, inefficiencies, or straight-up inaccuracies and nonsense I was about to spout in this README. I’ll admit this is getting a bit out of hand, i'll be taking a rest, explore new things, learn new programming language and focus on my study.
 
 A personal exploration of the **[fst](https://github.com/BurntSushi/fst)** crate in Rust, experimenting with efficient string (set/map) storage and fuzzy searching capabilities.
 
@@ -93,3 +93,13 @@ Enhanced the FST to finally make use of the map (key, value) pair abilities for 
 *   **Search Logic**: Results are no longer just alphabetical. They are collected and sorted descending by score at query time.
 *   **Outcome**: Searching for "lov" now promotes "love" (Score: 1000) to the top, while "clove" (Score: 0) sinks to the bottom, mimicking modern autocomplete behavior.
 
+### Edit Distance Impact (1 vs 2)
+Increasing the search flexibility comes at an exponential cost.
+*   **Distance 1**: **~295µs**. (Instant feel)
+*   **Distance 2**: **~1.55ms**. (Still fast, but 5.2x slower)
+*   **Why**: The Levenshtein automaton must explore exponentially more branches (insertions, deletions, substitutions) as the allowed distance increases.
+
+## Status
+
+after February 2, 2026.
+This project has evolved from a simple test script into a complex blob of mess. While there are more avenues to explore (like fuzzy-weighted-transducers), the complexity has reached a point where it warrants a full project rather than an experiment. I'm taking a break from incomplete optimization to focus on other learnings.
