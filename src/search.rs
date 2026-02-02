@@ -27,6 +27,7 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                 let mut stream = map.search(lev).into_stream();
                 let mut result = Vec::new();
 
+                // Extract data from stream
                 while let Some((key_bytes, value)) = stream.next() {
                     result.push((key_bytes.to_vec(), value));
                 }
@@ -56,7 +57,7 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
 
                 let duration_search = start_search.elapsed();
                 println!("Time to search: {:?}", duration_search);
-                println!("{:#?}", top_10) 
+                println!("{:?}", top_10) 
             }
         }
     }
