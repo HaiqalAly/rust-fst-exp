@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut should_build = !fst_path.exists();
 
-    // Check if the txt file is newer, if yes rebuild if not use cached one
+    // Check if the txt file is newer, if yes rebuild, if not use cached one
     if !should_build {
       let fst_metadata = fs::metadata(fst_path)?;
       let txt_metadata = fs::metadata(txt_path)?;

@@ -19,7 +19,7 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
         match input.to_lowercase().as_str() {
             "#q" => break,
             "" => {
-                println!("Enter a valid word");
+                println!("Enter a valid word.");
             }
             _ => {
                 let start_search = std::time::Instant::now();
@@ -56,8 +56,18 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                     .collect();
 
                 let duration_search = start_search.elapsed();
-                println!("Time to search: {:?}", duration_search);
-                println!("{:?}", top_10) 
+                println!("\nFound {} results in: {:?}", top_10.len(), duration_search);
+                println!("{:-<30}", "");
+
+                if top_10.is_empty() {
+                    println!("No matches found.");
+                } else {
+                    for (i, (word, score)) in top_10.iter().enumerate() {
+                        println!("{:2}. {:<15} (score: {})", i + 1, word, score);
+                    }
+                }
+
+                println!("{:-<30}\n", "");
             }
         }
     }
