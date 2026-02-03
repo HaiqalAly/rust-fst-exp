@@ -10,7 +10,6 @@ struct SearchResult {
     key: Vec<u8>,
     value: u64,
     is_exact: bool,
-    sort_key: String
 }
 
 impl PartialOrd for SearchResult {
@@ -21,14 +20,13 @@ impl PartialOrd for SearchResult {
 
 impl Ord for SearchResult {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // Rule: If 'self' is BETTER than 'other', it must be LESS.
+        // In a BinaryHeap (MaxHeap), pop() removes the Greatest item.
+        // We want to KEEP it instead. x_x
 
-        // Exact matches come first
-        other.value.cmp(&self.value)
-            // Higher score first
+        // 1. Exact Match: Non-exact is "Worse" (Greater)
+        other.is_exact.cmp(&self.is_exact) 
+        // 2. Score: Lower score is "Worse" (Greater)
             .then_with(|| other.value.cmp(&self.value))
-            // Alphabetical
-            .then_with(|| self.sort_key.cmp(&other.sort_key))
             .then_with(|| self.key.cmp(&other.key))
     }
 }
@@ -56,19 +54,17 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                 let mut stream = map.search(lev).into_stream();
 
                 let mut heap = BinaryHeap::with_capacity(11);
-                let target = input.to_lowercase();
+                let target_bytes = input.to_lowercase().into_bytes();
 
                 // Only keep top 10 and pop the worst one if hit 11
                 while let Some((key_bytes, value)) = stream.next() {
-                    let word_str = String::from_utf8_lossy(key_bytes).to_lowercase();
-                    let is_exact = word_str == target;
+                    let is_exact = key_bytes == target_bytes;
 
                     // Constructing the struct
                     let res = SearchResult {
                         key: key_bytes.to_vec(),
                         value,
                         is_exact,
-                        sort_key: word_str
                     };
 
                     heap.push(res);

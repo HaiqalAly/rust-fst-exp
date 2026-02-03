@@ -2,7 +2,7 @@
 
 *A personal experimentation of the `fst` crate for efficient fuzzy searching.*
 
-> **Note:** This started as a test script and grew into a complex experiment. Expect some bugs, inefficiencies in the code, or straight-up inaccuracies and nonsense I was about to spout in this README
+> **Note:** I'm still learning Rust! This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
 
 ## Usage
 
@@ -60,6 +60,5 @@ Even with the Heap optimization, a `Levenshtein` distance of 2+ on a massive dic
 
 ## Status
 
-**Maintenance Mode** (Feb 2026).<br>
-This experiment has grown from a simple script into a complex optimization playground.<br>
-I'm freezing it here to focus on other learnings.
+**Frozen** (Feb 2026).
+This experiment successfully demonstrated high-performance search techniques, but the complexity has outgrown my initial scope. I am wrapping it up here to take a break and focus on simpler learning projects.
