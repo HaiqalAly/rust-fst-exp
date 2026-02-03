@@ -1,8 +1,8 @@
-# Rust FST Experiment
+# Fast-FST: High-Performance Fuzzy Search
 
-*A personal exploration of the `fst` crate for efficient fuzzy searching.*
+*A personal experimentation of the `fst` crate for efficient fuzzy searching.*
 
-> **Note:** I'm still learning! This started as a test script and grew into a complex experiment. Expect some bugs, inefficiencies in the code, or straight-up inaccuracies and nonsense I was about to spout in this README
+> **Note:** This started as a test script and grew into a complex experiment. Expect some bugs, inefficiencies in the code, or straight-up inaccuracies and nonsense I was about to spout in this README
 
 ## Usage
 
@@ -30,6 +30,9 @@
 *   **Reduction**: The FST is **~29%** of the original size, achieving a **~71% reduction** in storage.
 
 ### 2. Massive Speedups
+*   **Heap-Based Top-K Rangking:** Used `std::collections::BinaryHeap` to limit search result to top 10 items in real-time.
+    *   **Memory Efficiency:** We no longer store the entire fuzzy match result in RAM before sorting.
+    *   **Algorithmic View:** Complexity drops from **O(N log N)** to **O(N log 10)**
 *   **Incremental Build:** Implemented `make`-like logic to skip rebuilding if `dict.fst` is fresh.
     *   **Debug Profile**:
         *   Fresh Build: **~352ms**
@@ -51,16 +54,9 @@
 *   **Fuzzy Search:** `Levenshtein` distance 1 is instant (**~190µs** - **300µs**). Distance 2 is exponential (**~1.55ms**).
 
 ## Known Limitation
-While the FST search is lightning-fast, the current implementation has three primary inefficiencies that scale poorly with large dictionaries or higher edit distances:
 
-1. The "Collect-Sort" Bottleneck:
-The code currently drains the entire search stream into a Vec, then sorts the entire result set just to pick the top 10. If a fuzzy search for a short word returns 5,000 matches, the CPU spends 99% of its time sorting 4,990 words you will never show the user.
-
-2. Redundant String Conversion:
-Inside the `sort_by_cached_key` block, the code performs `String::from_utf8_lossy(word).to_lowercase()` repeatedly.
-
-3. Levenshtein Distance:
-The search space for Levenshtein automata grows exponentially. In a large dictionary, `Levenshtein(2)` can return thousands of results, making the "Collect-Sort" bottleneck mentioned in point #1 even more severe.
+1. **Levenshtein Distance:**
+Even with the Heap optimization, a `Levenshtein` distance of 2+ on a massive dictionary is significantly slower. While we no longer struggle to sort those results, the FST still has to find them, which involves traversing a much larger state machine.
 
 ## Status
 

@@ -1,8 +1,37 @@
 use std::io::{self, Write};
+use std::collections::BinaryHeap;
 
 use fst::automaton::Levenshtein;
 use fst::{IntoStreamer, Map, Streamer};
 use memmap2::Mmap;
+
+#[derive(PartialEq, Eq)]
+struct SearchResult {
+    key: Vec<u8>,
+    value: u64,
+    is_exact: bool,
+    sort_key: String
+}
+
+impl PartialOrd for SearchResult {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SearchResult {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        // Rule: If 'self' is BETTER than 'other', it must be LESS.
+
+        // Exact matches come first
+        other.value.cmp(&self.value)
+            // Higher score first
+            .then_with(|| other.value.cmp(&self.value))
+            // Alphabetical
+            .then_with(|| self.sort_key.cmp(&other.sort_key))
+            .then_with(|| self.key.cmp(&other.key))
+    }
+}
 
 pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
     let data = std::fs::File::open("dict.fst")?;
@@ -25,35 +54,32 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                 let start_search = std::time::Instant::now();
                 let lev = Levenshtein::new(input.to_lowercase().as_str(), 1)?;
                 let mut stream = map.search(lev).into_stream();
-                let mut result = Vec::new();
 
-                // Extract data from stream
-                while let Some((key_bytes, value)) = stream.next() {
-                    result.push((key_bytes.to_vec(), value));
-                }
-
-                // Tie breaker (lowercase first > capitalized, e.g love > Love)
+                let mut heap = BinaryHeap::with_capacity(11);
                 let target = input.to_lowercase();
-                result.sort_by_cached_key(|(word, value)| {
-                    let word_str = String::from_utf8_lossy(word).to_lowercase();
 
-                    let not_exact = word_str != target;
-                    
-                    (
-                        not_exact,
-                        std::cmp::Reverse(*value),
-                        word_str,
-                        std::cmp::Reverse(word.clone())
-                    )
-                });
+                // Only keep top 10 and pop the worst one if hit 11
+                while let Some((key_bytes, value)) = stream.next() {
+                    let word_str = String::from_utf8_lossy(key_bytes).to_lowercase();
+                    let is_exact = word_str == target;
+
+                    // Constructing the struct
+                    let res = SearchResult {
+                        key: key_bytes.to_vec(),
+                        value,
+                        is_exact,
+                        sort_key: word_str
+                    };
+
+                    heap.push(res);
+
+                    if heap.len() > 10 {
+                        heap.pop();
+                    }
+                }
                 
                 // Only take top 10 words
-                let top_10: Vec<(String, u64)> = result.into_iter()
-                    .take(10)
-                    .filter_map(|(bytes, value)| {
-                        String::from_utf8(bytes).ok().map(|s| (s, value))
-                    })
-                    .collect();
+                let top_10: Vec<_> = heap.into_sorted_vec();
 
                 let duration_search = start_search.elapsed();
                 println!("\nFound {} results in: {:?}", top_10.len(), duration_search);
@@ -62,8 +88,10 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                 if top_10.is_empty() {
                     println!("No matches found.");
                 } else {
-                    for (i, (word, score)) in top_10.iter().enumerate() {
-                        println!("{:2}. {:<15} (score: {})", i + 1, word, score);
+                    for (i, item) in top_10.iter().enumerate() {
+                        // Recover original string from bytes for display
+                        let word = String::from_utf8_lossy(&item.key);
+                        println!("{:2}. {:<15} (score: {})", i + 1, word, item.value);
                     }
                 }
 
