@@ -18,10 +18,10 @@ pub fn build_fst(input_path: &str, output_path: &str) -> Result<(), Box<dyn std:
         let mut value = 0;
 
         // Parsing text logic
-        if let Some((word, weight)) = line.split_once(","){
+        if let Some((word, weight)) = line.split_once(",") {
             key = word.trim();
             value = weight.trim().parse::<u64>().unwrap_or(0);
-        } 
+        }
         build.insert(key, value)?;
     }
 

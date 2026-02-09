@@ -1,5 +1,5 @@
-use std::io::{self, Write};
 use std::collections::BinaryHeap;
+use std::io::{self, Write};
 
 use fst::automaton::Levenshtein;
 use fst::{IntoStreamer, Map, Streamer};
@@ -24,8 +24,10 @@ impl Ord for SearchResult {
         // We want to KEEP it instead. x_x
 
         // 1. Exact Match: Non-exact is "Worse" (Greater)
-        other.is_exact.cmp(&self.is_exact) 
-        // 2. Score: Lower score is "Worse" (Greater)
+        other
+            .is_exact
+            .cmp(&self.is_exact)
+            // 2. Score: Lower score is "Worse" (Greater)
             .then_with(|| other.value.cmp(&self.value))
             .then_with(|| self.key.cmp(&other.key))
     }
@@ -73,7 +75,7 @@ pub fn search_fn() -> Result<(), Box<dyn std::error::Error>> {
                         heap.pop();
                     }
                 }
-                
+
                 // Only take top 10 words
                 let top_10: Vec<_> = heap.into_sorted_vec();
 
