@@ -1,4 +1,4 @@
-use std::io;
+use std::io::{self};
 use std::time::Duration;
 
 use crossterm::{
@@ -15,7 +15,7 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, Paragraph},
 };
 
-use crate::search::{Dictionary, SearchResult};
+use crate::finite_state::search::{Dictionary, SearchResult};
 
 struct App {
     input: String,
@@ -65,6 +65,14 @@ impl App {
 }
 
 pub fn run_tui() -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
+    {
+        println!(
+            "\x1b[33mWarning: Running in DEBUG mode. Performance will be slow. Use --release for benchmarks.\x1b[0m"
+        );
+        std::thread::sleep(Duration::from_secs(2));
+    }
+
     // Setup terminal
     enable_raw_mode()?;
     let mut stdout = io::stdout();
