@@ -3,13 +3,16 @@ use std::path::Path;
 
 mod build_fst;
 mod search;
+mod search_interface;
 use build_fst::build_fst;
-use search::search_fn;
+use search_interface::run_tui;
 
 // Adapted and built upon from the fst crate examples by the Legendary @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(debug_assertions)]
-    println!("\x1b[33mWarning: Running in DEBUG mode. Performance will be slow. Use --release for benchmarks.\x1b[0m");
+    println!(
+        "\x1b[33mWarning: Running in DEBUG mode. Performance will be slow. Use --release for benchmarks.\x1b[0m"
+    );
 
     let start_build = std::time::Instant::now();
 
@@ -45,6 +48,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let duration_build = start_build.elapsed();
     println!("Time to build: {:?}", duration_build);
 
-    search_fn()?;
+    run_tui()?;
     Ok(())
 }
