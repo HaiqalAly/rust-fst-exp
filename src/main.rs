@@ -1,10 +1,8 @@
 use std::fs;
 use std::path::Path;
 
-mod finite_state;
-mod search_interface;
-use finite_state::build::build_fst;
-use search_interface::run_tui;
+use rust_exp_fst::finite_state::build::build_fst;
+use rust_exp_fst::search_interface::run_tui;
 
 // Adapted and built upon from the fst crate examples by the Legendary @burntsushi
 fn main() -> Result<(), Box<dyn std::error::Error>> {
