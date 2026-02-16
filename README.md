@@ -2,9 +2,9 @@
 
 *A personal experimentation of the `fst` crate for efficient fuzzy searching.*
 
-> **Note:** I'm still learning Rust! This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
+> **Note:** I'm still learning Rust. This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
 
-![Benchmark repeat query](docs/repeat_query.png)<br>
+![Benchmark repeat query](docs/query.png)<br>
 ## Usage
 
 1.  **Prepare Dictionary:** Input must be strictly sorted by ASCII byte values.
@@ -15,13 +15,11 @@
 
 2.  **Run:**
     ```bash
-    # To run the REPL
     cargo run --release
-
-    # OR use piping (example below)
-    printf "love\n#q" | cargo run --release
     ```
-    Type words to search. Type `#q` to exit.
+    The interactive TUI will launch.
+    *   **Type** to search instantly.
+    *   **Esc** or **Ctrl+C** to exit.
 
 ## Key Insights & Benchmarks
 
@@ -43,7 +41,9 @@
         *   Fresh Build: **~36ms** (Streaming) vs **~46.5ms** (Old In-Memory)
         *   Cached Startup: **~3.8µs** (High Perf) | **~7µs** (Balanced)
         *   Speedup: Even with optimized builds, skipping the work is **~10,000x** faster.
-*   **Cold vs. Warm CPU:** Interactive shell queries (**~400µs - 1ms**) are on average **2-3x** slower than piped queries (**~350µs**) due to CPU power-saving latency. However, in "High Performance mode", repeat queries hit **~190µs** - **250µs**.
+*   **Search Latency:** This was tested on a laptop and the performance depends heavily on CPU power states:
+    *   **Balanced Mode:** ~700µs - 1ms.
+    *   **High Performance:** ~190µs - 350µs.
 
 ### 3. Zero-RAM Construction
 *   **Streaming Build:** Switched from loading `Vec<String>` to streaming lines directly from disk.
@@ -58,8 +58,3 @@
 
 1. **Levenshtein Distance:**
 Even with the Heap optimization, a `Levenshtein` distance of 2+ on a massive dictionary is significantly slower. While we no longer struggle to sort those results, the FST still has to find them, which involves traversing a much larger state machine.
-
-## Status
-
-**Frozen** (Feb 2026).
-This experiment successfully demonstrated high-performance search techniques, but the complexity has outgrown my initial scope. I am wrapping it up here to take a break and focus on simpler learning projects.
