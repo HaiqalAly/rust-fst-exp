@@ -2,69 +2,70 @@
 
 *A personal experimentation of the `fst` crate for efficient fuzzy searching.*
 
-> **Note:** I'm still learning Rust. This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies, and some concepts here might be beyond my current understanding.
+> **Note:** I'm still learning Rust. This project unexpectedly grew from a simple test script into a complex optimization experiment. The code definitely has bugs and inefficiencies.
 
-![Benchmark repeat query](docs/query.png)<br>
-
----
+![Benchmark repeat query](docs/query.png)
 
 ## Usage
 
-1.  **Prepare Dictionary:** Input must be strictly sorted by ASCII byte values.
+1.  **Prepare Dictionary**
+    Input must be strictly sorted by byte values.
     ```bash
     export LC_ALL=C && sort dict.txt -o dict.txt
     ```
     *Optional: Add weights for ranking (e.g., `love,1000`).*
 
-2.  **Run:**
+2.  **Run**
     ```bash
     cargo run --release
     ```
-    The interactive TUI will launch.
     *   **Type** to search instantly.
     *   **Esc** or **Ctrl+C** to exit.
+    *   Note: Always use `--release` for accurate performance.
 
 ---
 
-## Key Insights & Benchmarks
+## Benchmarks
 
-### 1. Storage Efficiency
-*   **Original File (`dict.txt`)**: **977 KB** (~103k words).
-*   **Compressed FST (`dict.fst`)**: **279 KB**.
-*   **Reduction**: The FST is **~29%** of the original size, achieving a **~71% reduction** in storage.
+Benchmarks tracked using **Criterion.rs** on a local machine.
 
-### 2. Massive Speedups
-*   **Heap-Based Top-K Rangking:** Used `std::collections::BinaryHeap` to limit search result to top 10 items in real-time.
-    *   **Memory Efficiency:** We no longer store the entire fuzzy match result in RAM before sorting.
-    *   **Algorithmic View:** Complexity drops from **O(N log N)** to **O(N log 10)**
-*   **Incremental Build:** Implemented `make`-like logic to skip rebuilding if `dict.fst` is fresh.
-    *   **Debug Profile**:
-        *   Fresh Build: **~352ms**
-        *   Cached Startup: **~8.5µs** (No build performed)
-        *   Speedup: **~41,000x** faster startup.
-    *   **Release Profile**:
-        *   Fresh Build: **~36ms** (Streaming) vs **~46.5ms** (Old In-Memory)
-        *   Cached Startup: **~3.8µs** (High Perf) | **~7µs** (Balanced)
-        *   Speedup: Even with optimized builds, skipping the work is **~10,000x** faster.
-*   **Search Latency (Criterion Benchmarks):**
-    *   **Using plotters backend** - Benchmarks ran on local machine.
-    *   **Exact Match ("apple"):** ~113 µs
-    *   **Fuzzy Match (Short "aple"):** ~114 µs
-    *   **Fuzzy Match (Long "interational"):** ~231 µs
-    *   **Note:** Real-world latency can vary (~700µs - 1ms on balanced power mode) vs (~190µs - 350µs on high performance).
+### 1. Exact Match (`apple`) - ~113 µs
+![Apple Benchmark](docs/criterion_apple.png)
 
-### 3. Zero-RAM Construction
-*   **Streaming Build:** Switched from loading `Vec<String>` to streaming lines directly from disk.
-    *   *Reduced RAM usage from O(N) to O(1).*
-    *   *Build time dropped ~21%.*
+### 2. Fuzzy Match Short (`aple`) - ~114 µs
+![Aple Benchmark](docs/criterion_aple.png)
 
-### 4. Smart Search Features
-*   **Weighted Ranking:** Modified to support `word,score` pairs. Results are ranked by: **Exact Match > High Score > Alphabetical**.
-*   **Fuzzy Search:** `Levenshtein` distance 1 is instant (**~129µs** - **276µs**). Distance 2 is exponential (**~1.55ms**).
+### 3. Fuzzy Match Long (`interational`) - ~231 µs
+![International Benchmark](docs/criterion_interational.png)
+
+| Metric | Measurement | Notes |
+| :--- | :--- | :--- |
+| **Search Latency** | `113µs` - `230µs` | Varies by query length & CPU state |
+| **Storage** | `279 KB` (vs `977 KB`) | **71% reduction** in size |
+| **Cold Start** | `~3.8µs` | Cached startup (vs `36ms` build) |
 
 ---
 
-## Known Limitation
+## Optimizations
 
-1. **Levenshtein Distance:**
-Even with the Heap optimization, a `Levenshtein` distance of 2+ on a massive dictionary is significantly slower. While we no longer struggle to sort those results, the FST still has to find them, which involves traversing a much larger state machine.
+### Heap-Based Top-K Ranking
+*   **Problem:** Storing all fuzzy matches in RAM before sorting is `O(N log N)` and memory heavy.
+*   **Solution:** Used `std::collections::BinaryHeap` to keep only the top 10 items.
+*   **Result:** Complexity drops to `O(N log 10)`.
+
+### Incremental Build System
+*   **Problem:** Rebuilding the FST on every run is slow (~350ms).
+*   **Solution:** Check file modification times (like `make`). Only rebuild if `dict.txt` is newer than `dict.fst`.
+*   **Result:** Startup time improved from **350ms** -> **~8µs** (40,000x speedup).
+
+### Zero-RAM Streaming
+*   **Problem:** Loading `Vec<String>` is memory intensive `O(N)`.
+*   **Solution:** Stream lines directly from disk into the FST builder.
+*   **Result:** Constant RAM usage `O(1)` during construction.
+
+---
+
+## Limitations
+
+*   **Levenshtein Distance > 2:**
+    Distance 1 is instant (~200µs). Distance 2 is significantly slower (~1.5ms) due to the exponential growth of states in the automaton, even with heap optimizations.
