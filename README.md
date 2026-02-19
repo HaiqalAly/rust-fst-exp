@@ -29,20 +29,33 @@
 
 Benchmarks tracked using **Criterion.rs** on a local machine.
 
+<details>
+<summary>Benchmarking Environment</summary>
+
+- **CPU:** Intel i5-10300H @ 4.5GHz
+- **RAM:** 16GB DDR4
+- **OS:** Pop!_OS 24.04 LTS
+- **Rust Version:** 1.92.0
+</details>
+
 ### 1. Exact Match (`apple`) - ~113 µs
 ![Apple Benchmark](docs/criterion_apple.png)
 
-### 2. Fuzzy Match Short (`aple`) - ~114 µs
+### 2. Fuzzy Match Short (`aple`) - ~105 µs
 ![Aple Benchmark](docs/criterion_aple.png)
 
-### 3. Fuzzy Match Long (`interational`) - ~231 µs
+### 3. Fuzzy Match Long (`interational`) - ~224 µs
 ![International Benchmark](docs/criterion_interational.png)
+
+<div align="center">
 
 | Metric | Measurement | Notes |
 | :--- | :--- | :--- |
 | **Search Latency** | `113µs` - `230µs` | Varies by query length & CPU state |
 | **Storage** | `279 KB` (vs `977 KB`) | **71% reduction** in size |
 | **Cold Start** | `~3.8µs` | Cached startup (vs `36ms` build) |
+
+</div>
 
 ---
 

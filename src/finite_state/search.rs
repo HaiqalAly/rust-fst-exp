@@ -55,8 +55,6 @@ impl Dictionary {
         }
 
         let start_search = Instant::now();
-        // If query is short, maybe use strict Levenshtein or just prefix?
-        // Using Levenshtein 1 for now as per original code
         let query_lower = query.to_lowercase();
         let lev = Levenshtein::new(&query_lower, 1)?;
         let mut stream = self.map.search(lev).into_stream();
